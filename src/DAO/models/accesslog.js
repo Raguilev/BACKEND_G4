@@ -27,15 +27,12 @@ module.exports = (sequelize, DataTypes) => {
     firstaccess: DataTypes.BOOLEAN,
     access_time: {
       type: DataTypes.DATE,
-      allowNull: false
     }
   }, {
     sequelize,
     modelName: 'AccessLog',
     freezeTableName: true,
-    timestamps: true,
-    createdAt: 'access_time',
-    updatedAt: false       
+    timestamps: false      
   });
   return AccessLog;
 };
