@@ -7,8 +7,13 @@ const UserController = () => {
 
   //Agregar otros endpoints, post, get
 
-  router.get("/totalUsers", (req: Request, resp: Response) => {
-    const totalUsers = 1500
+  router.get("/totalUsers", async (req: Request, resp: Response) => {
+    const totalUsers = await db.User.count({
+      where:{
+        role_id : 2
+      }
+    }
+    )
     resp.json({
       msg: "",
       totalUsers: totalUsers

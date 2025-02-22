@@ -25,10 +25,9 @@ module.exports = (sequelize, DataTypes) => {
     },
     action: DataTypes.STRING,
     firstaccess: DataTypes.BOOLEAN,
-    access_time: {
-      type: DataTypes.DATE,
-    }
-  }, {
+    access_time: DataTypes.DATE,
+  },
+  {
     sequelize,
     modelName: 'AccessLog',
     freezeTableName: true,

@@ -2,21 +2,6 @@ import express, { Request, Response } from "express"
 import { where } from "sequelize"
 const db = require("../DAO/models")
 
-export interface Expense {
-    id: number;
-    user_id: number;
-    date: string;
-    amount: number;
-    description: string;
-    category: Categoria;
-    recurring: boolean;
-}
-
-export interface Categoria {
-    id: number
-    name: string
-}
-
 const ExpenseController = () => {
     const path: string = "/expenses"
     const router = express.Router()
@@ -31,15 +16,19 @@ const ExpenseController = () => {
             }
         })
         const formattedExpenses = expenses.map((expense: any) => {
-            const isoDate = expense.dataValues.date.toISOString(); 
-            const [year, month, day] = isoDate.split('T')[0].split('-');
+            const date = new Date(expense.dataValues.date);
             
+            // Formateo seguro con UTC
+            const day = date.getUTCDate().toString().padStart(2, '0');
+            const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
+            const year = date.getUTCFullYear();
+      
             return {
-                ...expense.dataValues,
-                Category: expense.Category,
-                date: `${day}/${month}/${year}` 
+              ...expense.dataValues,
+              date: `${day}/${month}/${year}`, // Formato DD/MM/YYYY
+              Category: expense.Category
             };
-        });
+          });
 
         resp.json({
             msg: "",

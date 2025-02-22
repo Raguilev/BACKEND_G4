@@ -19,7 +19,6 @@ module.exports = {
         type: Sequelize.BOOLEAN
       },
       access_time: {
-        allowNull: false,
         type: Sequelize.DATE
       },
     });
