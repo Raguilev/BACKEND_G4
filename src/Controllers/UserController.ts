@@ -1,4 +1,5 @@
 import express, { Request, Response, } from "express";
+const db = require("../DAO/models")
 
 const UserController = () => {
   const path: string = "/users";

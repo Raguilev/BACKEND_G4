@@ -1,36 +1,79 @@
-import express, {Request, Response} from "express"
+import express, { Request, Response } from "express"
+import { where } from "sequelize"
+const db = require("../DAO/models")
 
-const ExpenseController = () =>{
-    const path : string = "/expenses"
+export interface Expense {
+    id: number;
+    user_id: number;
+    date: string;
+    amount: number;
+    description: string;
+    category: Categoria;
+    recurring: boolean;
+}
+
+export interface Categoria {
+    id: number
+    name: string
+}
+
+const ExpenseController = () => {
+    const path: string = "/expenses"
     const router = express.Router()
 
-    router.get("/", (req : Request, resp : Response ) => {
-        resp.json({
-            msg : "",
-            expenses : [
-                {
-                    id: 1,
-                    date: "2024-12-12",
-                    category: "Ocio",
-                    description: "Libro de Stephen King",
-                    recurring: false,
-                    amount: 29.99,
-                    user_id: 1
-                  },
-                  {
-                    id: 2,
-                    date: "2024-12-02",
-                    category: "Servicios",
-                    description: "Servicio de luz",
-                    recurring: true,
-                    amount: 229.99,
-                    user_id: 1
-                  }
-            ]
+    router.get("/", async (req: Request, resp: Response) => {
+        const expenses = await db.Expense.findAll({
+            include: {
+                model: db.Category,
+                as: "Category",
+                attributes: ["name"],
+                required: true
+            }
         })
+        const formattedExpenses = expenses.map((expense: any) => {
+            const isoDate = expense.dataValues.date.toISOString(); 
+            const [year, month, day] = isoDate.split('T')[0].split('-');
+            
+            return {
+                ...expense.dataValues,
+                Category: expense.Category,
+                date: `${day}/${month}/${year}` 
+            };
+        });
+
+        resp.json({
+            msg: "",
+            expenses: formattedExpenses
+        });
     })
 
-    return [ path, router ]
+    router.get("/:user_id", async (req: Request, resp: Response) => {
+        const { user_id } = req.params;
+        const expenses = await db.Expense.findAll({
+            where: {
+                user_id: user_id
+            },
+            include: {
+                model: db.Category,
+                as: "Category",
+                attributes: ["name"],
+                required: true
+            }
+        })
+        if (expenses.length > 0) {
+            resp.json({
+                msg: "",
+                expenses: expenses
+            })
+        } else {
+            resp.json({
+                msg: "No hay expenses"
+            })
+        }
+    })
+    //http://localhost:5000/expenses/2
+
+    return [path, router]
 
 }
 export default ExpenseController
