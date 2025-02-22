@@ -7,20 +7,20 @@ module.exports = {
       // Registros del año pasado (2024) con firstaccess = true
       {
         user_id: 1,
-        action: 'Login',
+        action: 'Registro',
         firstaccess: true,
         access_time: '2024-11-01 08:30:00'
       },
       {
         user_id: 2,
-        action: 'Login',
+        action: 'Registro',
         firstaccess: true,
         access_time: '2024-12-02 09:15:00'
       },
       // Registro del año actual (2025) con firstaccess = true
       {
         user_id: 3,
-        action: 'Login',
+        action: 'Registro',
         firstaccess: true,
         access_time: '2025-01-03 14:20:00'
       },
