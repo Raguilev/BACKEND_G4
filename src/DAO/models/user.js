@@ -16,9 +16,6 @@ module.exports = (sequelize, DataTypes) => {
       User.hasMany(models.AccessLog,{
         foreignKey : "user_id"
       })
-      User.hasMany(models.Category,{
-        foreignKey : "user_id"
-      })
       User.hasMany(models.Expense,{
         foreignKey : "user_id"
       })

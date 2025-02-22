@@ -10,16 +10,12 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      Category.belongsTo(models.User,{
-        foreignKey : "user_id"
-      })
       Category.hasMany(models.Expense,{
         foreignKey : "category_id"
       })
     }
   }
   Category.init({
-    user_id: DataTypes.INTEGER,
     name: DataTypes.STRING
   }, {
     sequelize,

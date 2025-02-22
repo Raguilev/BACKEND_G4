@@ -21,7 +21,7 @@ module.exports = (sequelize, DataTypes) => {
   Expense.init({
     user_id: DataTypes.INTEGER,
     date: DataTypes.DATE,
-    amount: DataTypes.DECIMAL,
+    amount: DataTypes.FLOAT,
     description: DataTypes.TEXT,
     recurring: DataTypes.BOOLEAN,
     category_id: DataTypes.INTEGER

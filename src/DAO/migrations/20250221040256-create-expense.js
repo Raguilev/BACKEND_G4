@@ -16,7 +16,7 @@ module.exports = {
         type: Sequelize.DATE
       },
       amount: {
-        type: Sequelize.DECIMAL
+        type: Sequelize.FLOAT
       },
       description: {
         type: Sequelize.TEXT

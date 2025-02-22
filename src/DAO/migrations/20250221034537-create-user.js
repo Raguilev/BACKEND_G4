@@ -31,15 +31,7 @@ module.exports = {
         field : "id"
       }
     })
-    await queryInterface.addConstraint("Category",{
-      name : "FK_CATEGORY_USER",
-      type : "FOREIGN KEY",
-      fields : ["user_id"],
-      references : {
-        table : "User",
-        field : "id"
-      }
-    })
+    
     await queryInterface.addConstraint("Expense",{
       name : "FK_EXPENSE_USER",
       type : "FOREIGN KEY",
