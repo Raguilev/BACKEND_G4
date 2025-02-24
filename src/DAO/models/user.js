@@ -19,6 +19,9 @@ module.exports = (sequelize, DataTypes) => {
       User.hasMany(models.Expense,{
         foreignKey : "user_id"
       })
+      User.hasMany(models.Password_reset,{
+        foreignKey : "user_id"
+      })
     }
   }
   User.init({
