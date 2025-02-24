@@ -2,6 +2,7 @@
 const {
   Model
 } = require('sequelize');
+const password_resets = require('./password_resets');
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
     /**
@@ -19,6 +20,9 @@ module.exports = (sequelize, DataTypes) => {
       User.hasMany(models.Expense,{
         foreignKey : "user_id"
       })
+    }
+    validPassword(password){
+      return bcrypt.compareSync(password, this.password_hash);
     }
   }
   User.init({
