@@ -43,7 +43,8 @@ const UserController = () => {
         msg: ``,
         nombre: usuarios[0].name,
         role: usuarios[0].role_id,
-        userid: usuarios[0].id
+        userid: usuarios[0].id,
+        email:usuarios[0].email
       })
     } else {
       // Login es incorrecto
