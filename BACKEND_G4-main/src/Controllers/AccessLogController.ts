@@ -20,17 +20,18 @@ const AccessLogController = () => {
     const formattedAccessLog = historial.map((accesslog: any) => {
       const fecha = new Date(accesslog.dataValues.access_time);
 
-      const dia = fecha.getUTCDate().toString().padStart(2, '0');
-      const mes = (fecha.getUTCMonth() + 1).toString().padStart(2, '0');
-      const año = fecha.getUTCFullYear().toString().slice(-2);
-      
-      const horas = fecha.getUTCHours().toString().padStart(2, '0');
-      const minutos = fecha.getUTCMinutes().toString().padStart(2, '0');
+
+      const dia = fecha.getDate().toString().padStart(2, '0');
+      const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
+      const año = fecha.getFullYear().toString().slice(-2);
+
+      const horas = fecha.getHours().toString().padStart(2, '0');
+      const minutos = fecha.getMinutes().toString().padStart(2, '0');
 
       return {
         ...accesslog.dataValues,
         User: accesslog.User,
-        access_time: `${dia}/${mes}/${año}`, // Ej: 01/11/24
+        access_time: `${dia}/${mes}/${año}`, // Ej: 25/02/25
         access_time_hour: `${horas}:${minutos}` // Ej: 08:30
       };
     });
@@ -40,6 +41,31 @@ const AccessLogController = () => {
       accessLog: formattedAccessLog
     })
   })
+
+  //Endpoint para agregar logs
+  router.post("/:user_id/:action", async (req: Request, resp: Response) => {
+    const { user_id, action } = req.params;
+    const user = await db.User.findByPk(user_id);
+
+    if (!user) {
+      resp.json({
+        msg: "No hay usuario"
+      })
+      return
+    }
+
+    //Validacion de Acceso en usuario
+    const isFirstAccess = action == "Registro" && user.access == true
+    const newAccessLog = await db.AccessLog.create({
+      user_id: user_id,
+      action: action,
+      firstaccess: isFirstAccess,
+      access_time: new Date()
+    })
+    resp.json({
+      msg: "Accion añadida"
+    })
+});
 
   //Endpoint para obtener usuarios nuevos por mes
   router.get("/summary", async (req: Request, resp: Response) => {
