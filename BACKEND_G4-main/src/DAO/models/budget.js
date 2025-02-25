@@ -20,9 +20,21 @@ module.exports = (sequelize, DataTypes) => {
   }
 }
   Budget.init({
-    user_id: DataTypes.INTEGER,
+    user_id: {
+      type: DataTypes.INTEGER,
+      references: {
+        model: 'User', 
+        key: 'id'
+      }
+    },
     monthly_budget: DataTypes.FLOAT,
-    category_id: DataTypes.INTEGER
+    category_id: {
+      type: DataTypes.INTEGER,
+      references: {
+        model: 'Category', 
+        key: 'id'
+      }
+    },
   }, {
     sequelize,
     modelName: 'Budget',

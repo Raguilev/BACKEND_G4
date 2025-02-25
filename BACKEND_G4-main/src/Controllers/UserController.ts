@@ -173,6 +173,29 @@ router.delete("/delete/:id", async (req: Request, res: Response) => {
     }
   })
 
+
+  router.post("/register", async (req: Request, res: Response) => {
+    console.log(req.body);
+    const { name, email, password_hash } = req.body;
+
+    const existingUser = await db.User.findOne({ where: { email } });
+    if (existingUser) {
+      res.json({ msg: "Usuario ya registrado", data: null });
+    } else {
+      const verification_token = Math.random().toString(36).substr(2);
+
+      const newUser = await db.User.create({
+        name,
+        email,
+        password_hash,
+        role_id: 2,
+        verified: false,
+        verification_token,
+      });
+
+      res.json({ msg: "Registro exitoso. Verifique su correo.", data: newUser });
+    }
+  });
   return [path, router];
 }
 

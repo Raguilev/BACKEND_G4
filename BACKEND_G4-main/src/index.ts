@@ -7,7 +7,7 @@ import UserController from './Controllers/UserController'
 import AccessLogController from './Controllers/AccessLogController'
 import CategoriaController from './Controllers/CategoryController'
 import AuthController from './Controllers/AuthController'
-
+/*import BudgetController from './Controllers/BudgetController' */
 
 dotenv.config() //para que tome el puerto
 
@@ -20,11 +20,13 @@ app.use(cors()) // TODO: Incrementar la seguridad
 const port = process.env.PORT || 3000 //en caso de que no haya puerto, se pone el 3003
 
 const [expensesPath, expensesRouter] = ExpenseController()
-const [userPath, userRouter] = UserController()
+const [userPath, userRouter] = UserController() 
 const [accessLogsPath, accessLogsRouter] = AccessLogController();
 const [categoryPath, categoryRouter] = CategoriaController();
 const [AuthPath, AuthRouter] = AuthController();
+//const [BudgetPath, BudgetRouter] = BudgetController();
 
+//app.use(BudgetPath as string, BudgetRouter as Router)
 app.use(expensesPath as string , expensesRouter as Router)
 app.use(userPath as string , userRouter as Router)
 app.use(accessLogsPath as string , accessLogsRouter as Router)

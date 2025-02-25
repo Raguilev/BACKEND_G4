@@ -1,9 +1,22 @@
 import express, { Request, Response } from "express"
-import { where } from "sequelize"
+import path from "path";
 const db = require("../DAO/models")
+import fs from "fs";
 
+import fastcsv from "fast-csv";
+interface Egreso {
+    fecha: string;
+    descripcion: string;
+    recurrente: boolean;
+    monto: number;
+    categoria?: {
+        nombre: string;
+    };
+}
+
+const PDFDocument = require('pdfkit');
 const ExpenseController = () => {
-    const path: string = "/expenses"
+    const basePath: string = "/expenses"
     const router = express.Router()
 
     router.get("/", async (req: Request, resp: Response) => {
@@ -107,15 +120,77 @@ const ExpenseController = () => {
             resp.status(500).json({ msg: "Error interno al eliminar gasto" });
         }
     });
+    router.get("/csv", async (req: Request, resp: Response) => {
+        try {
+            // 1. Obtener los registros de la tabla Egreso
+            const egresos = await db.Egreso.findAll({
+                include: {
+                    model: db.Category,
+                    as: "Categoria",
+                    attributes: ["nombre"] // Solo obtenemos el nombre de la categoría
+                }
+            });
+    
+            // 2. Mapear los datos al formato deseado
+            const csvData = egresos.map((e: any) => ({
+                Fecha: e.fecha,
+                Categoría: e.Categoria?.nombre || "Sin categoría",
+                Descripción: e.descripcion,
+                Recurrente: e.recurrente ? "Sí" : "No",
+                Monto: `S/. ${parseFloat(e.monto.toString()).toFixed(2)}`,
+            }));
+    
+            // 3. Definir la ruta donde se guardará el archivo temporalmente
+            const filePath = path.join(__dirname, "../../exports/egresos.csv");
+            const ws = fs.createWriteStream(filePath);
+    
+            // 4. Generar el archivo CSV y enviarlo como descarga
+            fastcsv.write(csvData, { headers: true })
+                .on("finish", () => resp.download(filePath)) // Cuando termine de escribir, envía el archivo al cliente
+                .pipe(ws); // Escribe el CSV en el archivo temporal
+    
+        } catch (error) {
+            console.error("Error al exportar CSV:", error);
+            resp.status(500).json({ error: "Error al exportar el archivo CSV" });
+        }
+    });
+    router.get("/pdf", async (req: Request, res: Response) => {
+        try {
+            const egresos = await db.Egreso.findAll();
+    
+            const pdf = new PDFDocument();
+            res.setHeader("Content-Disposition", "attachment; filename=egresos.pdf"); 
+            //Archivo adjunto con nombre egresos.pdf
+            res.setHeader("Content-Type", "application/pdf");
+            //es un tipo archivo PDF
+    
+            pdf.pipe(res); //Conecta el flujo de escritura PDF al objeto Response
+    
+            pdf.fontSize(16).text("Reporte de Egresos", { align: "center" });
+            pdf.moveDown();
 
-
+            egresos.forEach((e: Egreso) => {
+                pdf.fontSize(12).text(`Fecha: ${e.fecha}`);
+                pdf.text(`Categoría: ${e.categoria?.nombre || "Sin categoría"}`);
+                pdf.text(`Descripción: ${e.descripcion}`);
+                pdf.text(`Recurrente: ${e.recurrente ? "Sí" : "No"}`);
+                pdf.text(`Monto: S/. ${parseFloat(e.monto.toString()).toFixed(2)}`);
+                pdf.moveDown();
+            });
+    
+            pdf.end();
+        } catch (error) {
+            console.error("Error al exportar PDF:", error);
+            res.status(500).send("Error al exportar el archivo PDF");
+        }
+    });
     
     
     
     
     
     
-    return [path, router]
+    return [basePath, router]
 
 
 }

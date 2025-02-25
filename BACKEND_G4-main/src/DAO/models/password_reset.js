@@ -16,7 +16,13 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   Password_reset.init({
-    user_id: DataTypes.INTEGER,
+    user_id: {
+      type: DataTypes.INTEGER,
+      references: {
+        model: 'User', 
+        key: 'id'
+      }
+    },
     token: DataTypes.STRING,
     created_at: DataTypes.DATE
   }, {
@@ -24,7 +30,6 @@ module.exports = (sequelize, DataTypes) => {
     modelName: 'Password_reset',
     freezeTableName : true,
     timestamps : false,
-
   });
   return Password_reset;
 };
