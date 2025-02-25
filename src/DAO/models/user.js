@@ -1,39 +1,33 @@
-'use strict';
-const {
-  Model
-} = require('sequelize');
+"use strict";
+const { Model } = require("sequelize");
+
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
     static associate(models) {
-      User.belongsTo(models.Role,{
-        foreignKey : "role_id"
-      })
-      User.hasMany(models.AccessLog,{
-        foreignKey : "user_id"
-      })
-      User.hasMany(models.Expense,{
-        foreignKey : "user_id"
-      })
-      User.hasMany(models.Password_reset,{
-        foreignKey : "user_id"
-      })
+      User.belongsTo(models.Role, { foreignKey: "role_id" });
+      User.hasMany(models.AccessLog, { foreignKey: "user_id" });
+      User.hasMany(models.Expense, { foreignKey: "user_id" });
+      User.hasMany(models.Password_reset, { foreignKey: "user_id" });
     }
   }
-  User.init({
-    name: DataTypes.STRING,
-    email: DataTypes.STRING,
-    password_hash: DataTypes.STRING,
-    role_id: DataTypes.INTEGER
-  }, {
-    sequelize,
-    modelName: 'User',
-    freezeTableName: true,
-    timestamps: false   
-  });
+
+  User.init(
+    {
+      id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+      name: { type: DataTypes.STRING, allowNull: false },
+      email: { type: DataTypes.STRING, allowNull: false, unique: true },
+      password_hash: { type: DataTypes.STRING, allowNull: false },
+      role_id: { type: DataTypes.INTEGER, allowNull: false },
+      verified: { type: DataTypes.BOOLEAN, defaultValue: false },
+      verification_token: { type: DataTypes.STRING, allowNull: true },
+    },
+    {
+      sequelize,
+      modelName: "User",
+      freezeTableName: true,
+      timestamps: false,
+    }
+  );
+
   return User;
 };

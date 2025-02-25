@@ -1,35 +1,31 @@
-'use strict';
-const {
-  Model
-} = require('sequelize');
+"use strict";
+const { Model } = require("sequelize");
+
 module.exports = (sequelize, DataTypes) => {
   class Expense extends Model {
-    /**
-     * Helper method for defining associations.
-     * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
-     */
     static associate(models) {
-      Expense.belongsTo(models.Category,{
-        foreignKey : "category_id"
-      })
-      Expense.belongsTo(models.User,{
-        foreignKey : "user_id"
-      })
+      Expense.belongsTo(models.User, { foreignKey: "user_id" });
+      Expense.belongsTo(models.Category, { foreignKey: "category_id" });
     }
   }
-  Expense.init({
-    user_id: DataTypes.INTEGER,
-    date: DataTypes.DATEONLY,
-    amount: DataTypes.FLOAT,
-    description: DataTypes.TEXT,
-    recurring: DataTypes.BOOLEAN,
-    category_id: DataTypes.INTEGER
-  }, {
-    sequelize,
-    modelName: 'Expense',
-    timestamps : false,
-    freezeTableName: true
-  });
+
+  Expense.init(
+    {
+      id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+      user_id: { type: DataTypes.INTEGER, allowNull: false },
+      date: { type: DataTypes.DATE, allowNull: false },
+      amount: { type: DataTypes.FLOAT, allowNull: false },
+      description: { type: DataTypes.STRING, allowNull: false },
+      recurring: { type: DataTypes.BOOLEAN, defaultValue: false },
+      category_id: { type: DataTypes.INTEGER, allowNull: false },
+    },
+    {
+      sequelize,
+      modelName: "Expense",
+      freezeTableName: true,
+      timestamps: false,
+    }
+  );
+
   return Expense;
 };

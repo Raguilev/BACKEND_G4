@@ -23,6 +23,7 @@ const [userPath, userRouter] = UserController()
 const [accessLogsPath, accessLogsRouter] = AccessLogController();
 const [categoryPath, categoryRouter] = CategoriaController();
 
+
 app.use(expensesPath as string , expensesRouter as Router)
 app.use(userPath as string , userRouter as Router)
 app.use(accessLogsPath as string , accessLogsRouter as Router)

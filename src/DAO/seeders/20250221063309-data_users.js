@@ -1,25 +1,30 @@
-'use strict';
+"use strict";
 
-/** @type {import('sequelize-cli').Migration} */
 module.exports = {
-
-  async up (queryInterface, Sequelize) {
-
-    await queryInterface.bulkInsert("Role", [
-      { name : "admin" },
-      { name : "user" }
-    ])
-
-    return await queryInterface.bulkInsert('User', [ 
-      { name: 'admin', email: 'admin@', password_hash: 'admin', role_id: 1 },
-      { name: 'soda', email: 'soda@', password_hash: 'soda', role_id: 2 },
-      { name: 'Maria', email: 'Maria@', password_hash: 'Maria', role_id: 2 },
-      { name: 'Juan', email: 'Juan@', password_hash: 'Juan', role_id: 2 },
-      { name: 'Jose', email: 'Jose@', password_hash: 'Jose', role_id: 2 }
-    ], {});
+  up: async (queryInterface, Sequelize) => {
+    return queryInterface.bulkInsert("User", [
+      {
+        id: 1,
+        name: "admin",
+        email: "admin@example.com",
+        password_hash: "admin",  // Hashea esto luego con bcrypt
+        role_id: 1,  // ⚠ Asegúrate de que este ID existe en la tabla Role
+        verified: true,
+        verification_token: null,
+      },
+      {
+        id: 2,
+        name: "roma",
+        email: "roma@example.com",
+        password_hash: "roma",
+        role_id: 2,
+        verified: true,
+        verification_token: null,
+      },
+    ]);
   },
 
-  async down (queryInterface, Sequelize) {
-    await queryInterface.bulkDelete('User', null, {});
-  }
+  down: async (queryInterface, Sequelize) => {
+    return queryInterface.bulkDelete("User", null, {});
+  },
 };
