@@ -1,10 +1,13 @@
 import express, { Request, Response, } from "express";
 import bcrypt from "bcrypt";
+import cors from 'cors'
+import jwt from "jsonwebtoken";
 const db = require("../DAO/models")
 
 const UserController = () => {
   const path: string = "/users";
   const router = express.Router();
+  const JWT_SECRET = process.env.JWT_SECRET || "tu_secreto_super_seguro";
 
   router.get("/list", async (req: Request, resp: Response) => {
     try {
@@ -140,62 +143,89 @@ router.delete("/delete/:id", async (req: Request, res: Response) => {
 
 
 
-  router.post("/", async (req: Request, resp: Response) => {
-    console.log(req.body)
-    const usuario = req.body.usuario
-    const password = req.body.password
+  router.post("/login", async (req: Request, resp: Response) => {
+    console.log("🔹 Datos recibidos:", req.body);
+    const { usuario, password } = req.body;
 
-    const usuarios = await db.User.findAll({
-      where: {
-        name: usuario,
-        password_hash: password,
+    const user = await db.User.findOne({
+        where: { name: usuario }
+    });
 
-      }
-    })
-    //console.log(usuarios)
+    console.log("🔹 Usuario encontrado en DB:", user);
 
-    if (usuarios.length > 0) {
-      
-      // Login correcto
-      resp.json({
-        msg: ``,
-        nombre: usuarios[0].name,
-        role: usuarios[0].role_id,
-        userid: usuarios[0].id,
-        email:usuarios[0].email
-        
-      })
+    if (!user) {
+        console.log("❌ Usuario no encontrado.");
+        resp.status(401).json({ msg: "Error en login" });
     } else {
-      // Login es incorrecto
-      resp.json({
-        msg: "Error en login"
-      })
+        const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+        console.log("🔹 ¿Contraseña válida?:", isPasswordValid);
+
+        if (!isPasswordValid) {
+            console.log("❌ Contraseña incorrecta.");
+            resp.status(401).json({ msg: "Error en login" });
+        } else {
+            console.log("✅ Usuario autenticado.");
+
+            const token = jwt.sign(
+                { userid: user.id, role: user.role_id, nombre: user.name, email: user.email },
+                JWT_SECRET,
+                { expiresIn: "2h" }
+            );
+
+            resp.json({
+                msg: "",
+                token,
+                nombre: user.name,
+                role: user.role_id,
+                userid: user.id,
+                email: user.email
+            });
+        }
     }
-  })
+});
 
 
-  router.post("/register", async (req: Request, res: Response) => {
-    console.log(req.body);
-    const { name, email, password_hash } = req.body;
 
-    const existingUser = await db.User.findOne({ where: { email } });
-    if (existingUser) {
-      res.json({ msg: "Usuario ya registrado", data: null });
-    } else {
-      const verification_token = Math.random().toString(36).substr(2);
 
-      const newUser = await db.User.create({
-        name,
-        email,
-        password_hash,
-        role_id: 2,
-        verified: false,
-        verification_token,
-      });
 
-      res.json({ msg: "Registro exitoso. Verifique su correo.", data: newUser });
-    }
+
+router.use(cors()); // ✅ Habilita CORS para evitar bloqueos
+
+// 🔹 Registrar usuario con contraseña encriptada
+router.post("/register", async (req: Request, res: Response) => {
+  console.log("🔹 Intentando registrar usuario:", req.body);
+
+  const { name, email, password } = req.body;
+
+  // 🔹 Verificar si el usuario ya existe
+  const existingUser = await db.User.findOne({ where: { email } });
+  if (existingUser) {
+      console.log("⚠️ Usuario ya registrado:", email);
+      res.status(400).json({ msg: "Usuario ya registrado" });
+      return;
+  }
+
+  // 🔹 Encriptar la contraseña
+  const saltRounds = 10;
+  const passwordEncrypted = await bcrypt.hash(password, saltRounds);
+
+  // 🔹 Crear nuevo usuario en la base de datos
+  const newUser = await db.User.create({
+      name,
+      email,
+      password_hash: passwordEncrypted, // ✅ Guardamos la contraseña encriptada
+      role_id: 2,
+      verified: false,
   });
+
+  console.log("✅ Usuario registrado correctamente:", newUser);
+  res.status(201).json({ msg: "Registro exitoso. Verifique su correo.", data: newUser });
+});
+
+
+
+
+
   return [path, router];
 }
 

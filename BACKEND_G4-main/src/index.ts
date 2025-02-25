@@ -18,6 +18,7 @@ app.use(express.static('assets')) // Carpeta archivos estaticos
 app.use(cors()) // TODO: Incrementar la seguridad
 
 const port = process.env.PORT || 3000 //en caso de que no haya puerto, se pone el 3003
+app.use(cors());
 
 const [expensesPath, expensesRouter] = ExpenseController()
 const [userPath, userRouter] = UserController() 

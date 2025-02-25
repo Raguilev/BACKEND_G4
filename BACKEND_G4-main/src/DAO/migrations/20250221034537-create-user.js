@@ -21,6 +21,9 @@ module.exports = {
       role_id: {
         type: Sequelize.INTEGER
       },
+      verified: {
+        type: Sequelize.BOOLEAN
+      }
     });
     /*await queryInterface.addConstraint("AccessLog",{
       name : "FK_ACCESSLOG_USER",
