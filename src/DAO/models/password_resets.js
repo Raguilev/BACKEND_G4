@@ -11,9 +11,9 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       Password_resets.belongsTo(models.User, {
-        foreignKey:'user_id',
-        as:'ContraseñaUser'
-      });
+        foreignKey:"user_id",
+        as:"Password_User"
+      })
     }
   }
   
@@ -24,10 +24,7 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'Password_resets',
-    timestamps: false,
     freezeTableName: true
   });
   return Password_resets;
 };
-
-export default Password_resets;

@@ -9,19 +9,27 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
+      user_id:{
+        type: Sequelize.INTEGER,
+        references: {
+          model: 'user',
+          key: 'id'
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE'
+      },
       name: {
         type: Sequelize.STRING
+      },
+      createdAt: {
+        allowNull: false,
+        type: Sequelize.DATE
+      },
+      updatedAt: {
+        allowNull: false,
+        type: Sequelize.DATE
       }
     });
-    /*await queryInterface.addConstraint("Expense",{
-      name : "FK_EXPENSE_CATEGORY",
-      type : "FOREIGN KEY",
-      fields : ["category_id"],
-      references : {
-        table : "Category",
-        field : "id"
-      }
-    })*/
   },
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable('Category');

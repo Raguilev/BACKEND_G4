@@ -6,7 +6,7 @@ import ExpenseController from './Controllers/ExpenseController'
 import UserController from './Controllers/UserController'
 import AccessLogController from './Controllers/AccessLogController'
 import CategoriaController from './Controllers/CategoryController'
-
+import userRoutes from "./Controllers/UserController"
 
 dotenv.config() //para que tome el puerto
 
@@ -15,6 +15,8 @@ app.use(bodyParser.json()) //para post
 app.use(bodyParser.urlencoded({extended: true}))
 app.use(express.static('assets')) // Carpeta archivos estaticos
 app.use(cors()) // TODO: Incrementar la seguridad
+app.use(express.json());
+app.use("/users, userRoutes")
 
 const port = process.env.PORT || 3000 //en caso de que no haya puerto, se pone el 3003
 

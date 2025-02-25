@@ -42,4 +42,4 @@ db.Sequelize = Sequelize;
 
 module.exports = db;
 
-export {User, password_reserts };
+export {User};

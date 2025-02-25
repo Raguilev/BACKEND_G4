@@ -19,28 +19,23 @@ module.exports = {
         type: Sequelize.STRING
       },
       role_id: {
-        type: Sequelize.INTEGER
+        type: Sequelize.INTEGER,
+        references: {
+          model: 'roles',
+          key:'id'
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL'
       },
-    });
-    /*await queryInterface.addConstraint("AccessLog",{
-      name : "FK_ACCESSLOG_USER",
-      type : "FOREIGN KEY",
-      fields : ["user_id"],
-      references : {
-        table : "User",
-        field : "id"
+      createdAt: {
+        allowNull: false,
+        type: Sequelize.DATE
+      },
+      updatedAt: {
+        allowNull: false,
+        type: Sequelize.DATE
       }
-    })
-    
-    await queryInterface.addConstraint("Expense",{
-      name : "FK_EXPENSE_USER",
-      type : "FOREIGN KEY",
-      fields : ["user_id"],
-      references : {
-        table : "User",
-        field : "id"
-      }
-    })*/
+  });  
   },
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable('User');

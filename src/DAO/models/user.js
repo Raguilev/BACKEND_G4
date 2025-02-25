@@ -12,13 +12,28 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       User.belongsTo(models.Role,{
-        foreignKey : "role_id"
+        foreignKey : "role_id",
+        as : "User_Role"
       })
       User.hasMany(models.AccessLog,{
-        foreignKey : "user_id"
+        foreignKey : "user_id",
+        as : "User_AccessLog"
       })
       User.hasMany(models.Expense,{
-        foreignKey : "user_id"
+        foreignKey : "user_id",
+        as : "User_Expense"
+      })
+      User.hasMany(models.categories, {
+        foreignKey : "user_id",
+        as : "User_Category"
+      })
+      User.hasMany(models.budgets, {
+        foreignKey : "user_id", 
+        as : "User_Budget"
+      })
+      User.hasMany(models.password_resets, {
+        foreignKey : "user_id",
+        as : "User_PasswordReset"
       })
     }
     validPassword(password){

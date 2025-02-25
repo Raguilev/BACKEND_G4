@@ -1,4 +1,4 @@
-import express, { Request, Response, } from "express";
+import express, { Request, Response, Router } from "express";
 import bcrypt from "bcrypt";
 const db = require("../DAO/models")
 
@@ -8,23 +8,23 @@ const UserController = () => {
 
   //Agregar otros endpoints, post, get
     // Endpoint para cambiar la contraseña
-    router.post("/change-password", async (req: Request, resp: Response) => {
+    router.post("/change-password", async (req : Request, res : Response) => {
       const { currentPassword, newPassword } = req.body;
-      const userId = req.user.id; // Asume que el ID del usuario está en el token JWT
+      const userId = (req as any).user.id; // Asumimos que el ID del usuario se obtiene del token JWT
   
       try {
         // Buscar al usuario en la base de datos
         const user = await db.User.findByPk(userId);
   
         if (!user) {
-          return resp.status(404).json({ msg: "Usuario no encontrado" });
+          return res.status(404).json({ msg: "Usuario no encontrado" });
         }
   
-        // Verificar la contraseña actual
+        // Verificar que la contraseña actual sea correcta
         const isPasswordValid = await bcrypt.compare(currentPassword, user.password_hash);
   
         if (!isPasswordValid) {
-          return resp.status(400).json({ msg: "Contraseña actual incorrecta" });
+          return res.status(400).json({ msg: "Contraseña actual incorrecta" });
         }
   
         // Hashear la nueva contraseña
@@ -34,13 +34,13 @@ const UserController = () => {
         // Actualizar la contraseña en la base de datos
         await user.update({ password_hash: newPasswordHash });
   
-        resp.json({ msg: "Contraseña actualizada correctamente" });
+        res.json({ msg: "Contraseña actualizada correctamente" });
       } catch (error) {
         console.error(error);
-        resp.status(500).json({ msg: "Error al cambiar la contraseña" });
+        res.status(500).json({ msg: "Error al cambiar la contraseña" });
       }
     })
-  
+   
   router.get("/all", async (req: Request, res: Response) => {
     console.log(req.body)
     const users = await db.users.findAll()
@@ -114,7 +114,7 @@ router.delete("/delete/:id", async (req: Request, res: Response) => {
       msg: "",
       totalUsers: totalUsers
     })
-  })
+  });
 
   return [path, router];
 }

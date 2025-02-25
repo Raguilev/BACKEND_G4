@@ -10,16 +10,19 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      Budgets.belongsTo(models.category_id, {
-        foreignKey: "user_id",
-        as: 'Budget_User'
+      Budgets.belongsTo(models.category, {
+        foreignKey: "category",
+        as: "Budget_Category"
       })  
-      
+      Budgets.belongsTo(models.user, {
+        foreignKey : "user_id",
+        as : "Budget_User"
+      })
     }
   }
   Budgets.init({
     user_id: DataTypes.INTEGER,
-    monthly_budget: DataTypes.DECIMAL,
+    monthly_budget: DataTypes.NUMERIC,
     category_id: DataTypes.INTEGER
   }, {
     sequelize,

@@ -9,11 +9,32 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
+      user_id: {
+        type: Sequelize.INTEGER,
+        references: {
+          model:'user',
+          key: 'id'
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE'
+      },
+      amount: {
+        type: Sequelize.DECIMAL
+      },
+      category: {
+        type: Sequelize.STRING
+      },
       monthly_budget: {
         type: Sequelize.DECIMAL
       },
       category_id: {
-        type: Sequelize.INTEGER
+        type: Sequelize.STRING,
+        references: {
+          model: 'category',
+          key: 'id'
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'SET NULL'
       },
       createdAt: {
         allowNull: false,
@@ -23,6 +44,7 @@ module.exports = {
         allowNull: false,
         type: Sequelize.DATE
       }
+
     });
   },
   async down(queryInterface, Sequelize) {
