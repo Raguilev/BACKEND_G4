@@ -81,6 +81,35 @@ const ExpenseController = () => {
         });
     });
     
+    router.delete("/:expense_id", async (req: Request, resp: Response): Promise<void> => {
+        try {
+            const expense_id = Number(req.params.expense_id); // ✅ Convertimos a número correctamente
+
+            if (isNaN(expense_id)) {
+                resp.status(400).json({ msg: "ID de gasto inválido" });
+                return;
+            }
+
+            console.log(`🔹 Eliminando gasto con ID: ${expense_id}`);
+
+            const expense = await db.Expense.findByPk(expense_id);
+
+            if (!expense) {
+                resp.status(404).json({ msg: "Gasto no encontrado" });
+                return;
+            }
+
+            await expense.destroy(); // ✅ Eliminamos el gasto
+
+            resp.json({ msg: "Gasto eliminado correctamente" });
+        } catch (error: any) {
+            console.error("❌ Error eliminando gasto:", error.message || error);
+            resp.status(500).json({ msg: "Error interno al eliminar gasto" });
+        }
+    });
+
+
+    
     
     
     
