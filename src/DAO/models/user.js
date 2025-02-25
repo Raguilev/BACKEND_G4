@@ -8,7 +8,7 @@ module.exports = (sequelize, DataTypes) => {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
-     * The `models/index` file will call this method automatically.
+     * The models/index file will call this method automatically.
      */
     static associate(models) {
       User.belongsTo(models.Role,{
@@ -23,21 +23,12 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey : "user_id",
         as : "User_Expense"
       })
-      User.hasMany(models.categories, {
-        foreignKey : "user_id",
-        as : "User_Category"
+      User.hasMany(models.Password_reset,{
+        foreignKey : "user_id"
       })
-      User.hasMany(models.budgets, {
-        foreignKey : "user_id", 
-        as : "User_Budget"
+      User.hasMany(models.Budget,{
+        foreignKey : "user_id"
       })
-      User.hasMany(models.password_resets, {
-        foreignKey : "user_id",
-        as : "User_PasswordReset"
-      })
-    }
-    validPassword(password){
-      return bcrypt.compareSync(password, this.password_hash);
     }
   }
   User.init({
