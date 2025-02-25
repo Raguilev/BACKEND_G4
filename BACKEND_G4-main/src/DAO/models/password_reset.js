@@ -3,28 +3,28 @@ const {
   Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-  class Category extends Model {
+  class Password_reset extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      Category.hasMany(models.Expense,{
-        foreignKey : "category_id"
-      })
-      Category.hasMany(models.Budget,{
-        foreignKey : "category_id"
+      Password_reset.belongsTo (models.User,{
+        foreignKey: "user_id"
       })
     }
   }
-  Category.init({
-    name: DataTypes.STRING
+  Password_reset.init({
+    user_id: DataTypes.INTEGER,
+    token: DataTypes.STRING,
+    created_at: DataTypes.DATE
   }, {
     sequelize,
-    modelName: 'Category',
-    freezeTableName: true,
-    timestamps: false   
+    modelName: 'Password_reset',
+    freezeTableName : true,
+    timestamps : false,
+
   });
-  return Category;
+  return Password_reset;
 };

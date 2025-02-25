@@ -13,7 +13,7 @@ module.exports = {
       }
     })
   },
-
+    
   async down (queryInterface, Sequelize) {
     await queryInterface.removeConstraint('Expense', 'FK_EXPENSE_CATEGORY');
   }

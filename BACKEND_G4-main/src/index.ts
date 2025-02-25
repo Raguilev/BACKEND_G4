@@ -6,6 +6,7 @@ import ExpenseController from './Controllers/ExpenseController'
 import UserController from './Controllers/UserController'
 import AccessLogController from './Controllers/AccessLogController'
 import CategoriaController from './Controllers/CategoryController'
+import AuthController from './Controllers/AuthController'
 
 
 dotenv.config() //para que tome el puerto
@@ -22,11 +23,13 @@ const [expensesPath, expensesRouter] = ExpenseController()
 const [userPath, userRouter] = UserController()
 const [accessLogsPath, accessLogsRouter] = AccessLogController();
 const [categoryPath, categoryRouter] = CategoriaController();
+const [AuthPath, AuthRouter] = AuthController();
 
 app.use(expensesPath as string , expensesRouter as Router)
 app.use(userPath as string , userRouter as Router)
 app.use(accessLogsPath as string , accessLogsRouter as Router)
 app.use(categoryPath as string , categoryRouter as Router)
+app.use(AuthPath as string , AuthRouter as Router)
 
 app.listen(port, () => {
     console.log(`Server ejecutandose en puerto: ${port}`)
