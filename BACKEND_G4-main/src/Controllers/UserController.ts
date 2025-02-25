@@ -153,35 +153,77 @@ router.delete("/delete/:id", async (req: Request, res: Response) => {
 
     console.log("🔹 Usuario encontrado en DB:", user);
 
-    if (!user) {
-        console.log("❌ Usuario no encontrado.");
-        resp.status(401).json({ msg: "Error en login" });
-    } else {
-        const isPasswordValid = await bcrypt.compare(password, user.password_hash);
-        console.log("🔹 ¿Contraseña válida?:", isPasswordValid);
+    let responseData: { 
+        msg: string;
+        token?: string;
+        nombre?: string;
+        role?: number;
+        userid?: number;
+        email?: string;
+    } = { msg: "Error en login" };
 
-        if (!isPasswordValid) {
-            console.log("❌ Contraseña incorrecta.");
-            resp.status(401).json({ msg: "Error en login" });
+    if (user) {
+        // ✅ Verificar si la cuenta está activada antes de comparar la contraseña
+        if (!user.verified) {
+            console.log("❌ Usuario no verificado.");
+            responseData.msg = "Cuenta no verificada. Verifique su correo.";
         } else {
-            console.log("✅ Usuario autenticado.");
+            const isPasswordValid = await bcrypt.compare(password, user.password_hash);
+            console.log("🔹 ¿Contraseña válida?:", isPasswordValid);
 
-            const token = jwt.sign(
-                { userid: user.id, role: user.role_id, nombre: user.name, email: user.email },
-                JWT_SECRET,
-                { expiresIn: "2h" }
-            );
+            if (isPasswordValid) {
+                console.log("✅ Usuario autenticado.");
 
-            resp.json({
-                msg: "",
-                token,
-                nombre: user.name,
-                role: user.role_id,
-                userid: user.id,
-                email: user.email
-            });
+                const token = jwt.sign(
+                    { userid: user.id, role: user.role_id, nombre: user.name, email: user.email },
+                    JWT_SECRET,
+                    { expiresIn: "2h" }
+                );
+
+                responseData = {
+                    msg: "",
+                    token,
+                    nombre: user.name,
+                    role: user.role_id,
+                    userid: user.id,
+                    email: user.email
+                };
+            }
         }
     }
+
+    resp.json(responseData); // ✅ Solo un `resp.json()` al final
+});
+
+
+router.post("/verify-user", async (req: Request, res: Response) => {
+  const { usuario } = req.body;
+
+  const user = await db.User.findOne({
+      where: { name: usuario }
+  });
+
+  res.json({ exists: !!user });
+});
+
+
+router.post("/reset-password", async (req: Request, res: Response) => {
+  const { usuario, newPassword } = req.body;
+
+  const user = await db.User.findOne({
+      where: { name: usuario }
+  });
+
+  if (!user) {
+      res.json({ success: false, msg: "Usuario no encontrado." });
+  } else {
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+      await user.update({ password_hash: hashedPassword });
+
+      res.json({ success: true, msg: "Contraseña actualizada correctamente." });
+  }
 });
 
 
