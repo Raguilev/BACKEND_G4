@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import cors from 'cors'
 import jwt from "jsonwebtoken";
 const db = require("../DAO/models")
+import { sendVerificationEmail } from "../email"; 
 
 const UserController = () => {
   const path: string = "/users";
@@ -184,11 +185,6 @@ router.delete("/delete/:id", async (req: Request, res: Response) => {
     }
 });
 
-
-
-
-
-
 router.use(cors()); // ✅ Habilita CORS para evitar bloqueos
 
 // 🔹 Registrar usuario con contraseña encriptada
@@ -218,19 +214,36 @@ router.post("/register", async (req: Request, res: Response) => {
       verified: false,
   });
 
+  await sendVerificationEmail(email);
+
   console.log("✅ Usuario registrado correctamente:", newUser);
-  res.status(201).json({ msg: "Registro exitoso. Verifique su correo.", data: newUser });
+  res.status(201).json({ msg: "Registro exitoso", data: newUser });
 });
 
+router.get("/verify", async (req: Request, res: Response) => {
+  const { email } = req.query;
 
+  // Buscar el usuario por el email
+  const user = await db.User.findOne({ where: { email } });
 
+  if (!user) {
+   res.status(400).json({ msg: "Usuario no encontrado o ya verificado" });
+  }
 
+  if (user.verified) {
+    res.status(400).json({ msg: "La cuenta ya está verificada" });
+  }
+
+  // Actualizar usuario como verificado
+  await db.User.update(
+    { verified: true },
+    { where: { email } }
+  );
+
+  res.json({ msg: "Cuenta verificada con éxito" });
+});
 
   return [path, router];
-}
-
-
-
-
+};
 
 export default UserController
