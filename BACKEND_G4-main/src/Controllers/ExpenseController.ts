@@ -1,4 +1,5 @@
 import express, { Request, Response } from "express"
+import jwt from "jsonwebtoken";
 import path from "path";
 const db = require("../DAO/models")
 import fs from "fs";
@@ -185,7 +186,64 @@ const ExpenseController = () => {
         }
     });
     
-    
+    // Ruta para obtener el resumen de gastos mensuales
+router.get("/summary/monthly", async (req: Request, resp: Response) => {
+    try {
+        const expenses = await db.Expense.findAll();
+
+        const gastosMensuales: Record<string, number> = {};
+
+        expenses.forEach((expense: any) => {
+            const date = new Date(expense.dataValues.date);
+            const mes = date.toLocaleString("es-ES", { month: "short" }); // Ej: "ene", "feb", "mar"
+            
+            if (!gastosMensuales[mes]) {
+                gastosMensuales[mes] = 0;
+            }
+            gastosMensuales[mes] += parseFloat(expense.dataValues.amount);
+        });
+
+        resp.json({
+            msg: "",
+            gastosMensuales
+        });
+    } catch (error) {
+        console.error("Error al obtener gastos mensuales:", error);
+        resp.status(500).json({ msg: "Error interno" });
+    }
+});
+
+// Ruta para obtener el resumen de gastos por categoría
+router.get("/summary/category", async (req: Request, resp: Response) => {
+    try {
+        const expenses = await db.Expense.findAll({
+            include: {
+                model: db.Category,
+                as: "Category",
+                attributes: ["name"],
+            }
+        });
+
+        const gastosPorCategoria: Record<string, number> = {};
+
+        expenses.forEach((expense: any) => {
+            const categoria = expense.Category?.name || "Sin categoría";
+            
+            if (!gastosPorCategoria[categoria]) {
+                gastosPorCategoria[categoria] = 0;
+            }
+            gastosPorCategoria[categoria] += parseFloat(expense.dataValues.amount);
+        });
+
+        resp.json({
+            msg: "",
+            gastosPorCategoria
+        });
+    } catch (error) {
+        console.error("Error al obtener gastos por categoría:", error);
+        resp.status(500).json({ msg: "Error interno" });
+    }
+});
     
     
     
