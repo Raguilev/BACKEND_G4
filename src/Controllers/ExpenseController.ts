@@ -3,7 +3,11 @@ import path from "path";
 const db = require("../DAO/models")
 import fs from "fs";
 
-import fastcsv from "fast-csv";
+import * as csv from 'fast-csv';
+import {Writable} from "stream"
+//import fastcsv from "fast-csv";
+import * as fastcsv from "fast-csv";
+import { Readable } from "stream";
 interface Egreso {
     fecha: string;
     descripcion: string;
@@ -120,40 +124,62 @@ const ExpenseController = () => {
             resp.status(500).json({ msg: "Error interno al eliminar gasto" });
         }
     });
-    router.get("/csv", async (req: Request, resp: Response) => {
+    router.get("/:user_id/export/csv", async (req: Request, res: Response) => {
         try {
-            // 1. Obtener los registros de la tabla Egreso
-            const egresos = await db.Egreso.findAll({
+            const { user_id } = req.params;
+    
+            // Convertir user_id a número
+            const expenses = await db.Expense.findAll({
+                where: { user_id: Number(user_id) },
                 include: {
                     model: db.Category,
-                    as: "Categoria",
-                    attributes: ["nombre"] // Solo obtenemos el nombre de la categoría
+                    attributes: ["name"]
                 }
             });
     
-            // 2. Mapear los datos al formato deseado
-            const csvData = egresos.map((e: any) => ({
-                Fecha: e.fecha,
-                Categoría: e.Categoria?.nombre || "Sin categoría",
-                Descripción: e.descripcion,
-                Recurrente: e.recurrente ? "Sí" : "No",
-                Monto: `S/. ${parseFloat(e.monto.toString()).toFixed(2)}`,
-            }));
-    
-            // 3. Definir la ruta donde se guardará el archivo temporalmente
-            const filePath = path.join(__dirname, "../../exports/egresos.csv");
-            const ws = fs.createWriteStream(filePath);
-    
-            // 4. Generar el archivo CSV y enviarlo como descarga
-            fastcsv.write(csvData, { headers: true })
-                .on("finish", () => resp.download(filePath)) // Cuando termine de escribir, envía el archivo al cliente
-                .pipe(ws); // Escribe el CSV en el archivo temporal
-    
+
+        // Definir el tipo de datos de cada fila
+        interface CsvRow {
+            Fecha: string;
+            Categoría: string;
+            Descripción: string;
+            Recurrente: string;
+            Monto: string;
+        }
+
+        // Mapear los datos al formato correcto
+        const csvData: CsvRow[] = expenses.map((e: any) => ({
+            Fecha: e.date ? e.date.toString() : "",
+            Categoría: e.Category?.name || "Sin categoría",
+            Descripción: e.description || "",
+            Recurrente: e.recurring === true ? "Sí" : e.recurring === false ? "No" : "Desconocido",
+            Monto: `S/. ${(e.amount ? parseFloat(e.amount.toString()) : 0).toFixed(2)}`
+        }));
+
+        console.log("📌 Datos CSV a exportar:", csvData);
+
+        // ✅ Configurar encabezados HTTP para forzar la descarga
+        res.setHeader("Content-Disposition", `attachment; filename=gastos_usuario_${user_id}.csv`);
+        res.setHeader("Content-Type", "text/csv; charset=utf-8");
+
+        // ✅ Crear un stream y escribir el CSV correctamente
+        const csvStream = fastcsv.format<CsvRow, CsvRow>({ headers: true });
+        const readableStream = new Readable({
+            read() {} // Se necesita definir read() aunque esté vacío
+        });
+
+        // ✅ Escribir cada fila en el stream
+        csvData.forEach(row => csvStream.write(row));
+        csvStream.end();
+
+        // ✅ Enviar el CSV al cliente
+        csvStream.pipe(res);
         } catch (error) {
-            console.error("Error al exportar CSV:", error);
-            resp.status(500).json({ error: "Error al exportar el archivo CSV" });
+            console.error("❌ Error al exportar CSV:", error);
+            res.status(500).json({ error: "Error al exportar el archivo CSV" });
         }
     });
+    
     router.get("/:user_id/export/pdf", async (req: Request, res: Response) => {
         try {
             const { user_id } = req.params;
