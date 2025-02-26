@@ -154,36 +154,44 @@ const ExpenseController = () => {
             resp.status(500).json({ error: "Error al exportar el archivo CSV" });
         }
     });
-    router.get("/pdf", async (req: Request, res: Response) => {
+    router.get("/:user_id/export/pdf", async (req: Request, res: Response) => {
         try {
-            const egresos = await db.Egreso.findAll();
+            const { user_id } = req.params;
+    
+            const expenses = await db.Expense.findAll({
+                where: { user_id },
+                include: {
+                    model: db.Category,
+                    as: "Category",
+                    attributes: ["name"]
+                }
+            });
     
             const pdf = new PDFDocument();
-            res.setHeader("Content-Disposition", "attachment; filename=egresos.pdf"); 
-            //Archivo adjunto con nombre egresos.pdf
+            res.setHeader("Content-Disposition", `attachment; filename=gastos_usuario_${user_id}.pdf`);
             res.setHeader("Content-Type", "application/pdf");
-            //es un tipo archivo PDF
     
-            pdf.pipe(res); //Conecta el flujo de escritura PDF al objeto Response
+            pdf.pipe(res);
     
-            pdf.fontSize(16).text("Reporte de Egresos", { align: "center" });
+            pdf.fontSize(16).text(`Reporte de Gastos del Usuario ${user_id}`, { align: "center" });
             pdf.moveDown();
-
-            egresos.forEach((e: Egreso) => {
-                pdf.fontSize(12).text(`Fecha: ${e.fecha}`);
-                pdf.text(`Categoría: ${e.categoria?.nombre || "Sin categoría"}`);
-                pdf.text(`Descripción: ${e.descripcion}`);
-                pdf.text(`Recurrente: ${e.recurrente ? "Sí" : "No"}`);
-                pdf.text(`Monto: S/. ${parseFloat(e.monto.toString()).toFixed(2)}`);
+    
+            expenses.forEach((e: any) => {
+                pdf.fontSize(12).text(`Fecha: ${e.date}`);
+                pdf.text(`Categoría: ${e.Category?.name || "Sin categoría"}`);
+                pdf.text(`Descripción: ${e.description}`);
+                pdf.text(`Recurrente: ${e.recurring ? "Sí" : "No"}`);
+                pdf.text(`Monto: S/. ${parseFloat(e.amount.toString()).toFixed(2)}`);
                 pdf.moveDown();
             });
     
             pdf.end();
         } catch (error) {
-            console.error("Error al exportar PDF:", error);
+            console.error("❌ Error al exportar PDF:", error);
             res.status(500).send("Error al exportar el archivo PDF");
         }
     });
+    
     
     
     
