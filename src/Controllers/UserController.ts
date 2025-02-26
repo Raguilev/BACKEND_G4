@@ -1,50 +1,50 @@
-import express, { Request, Response, } from "express";
-const db = require("../DAO/models")
+import express, { Request, Response, Router } from "express";
+const db = require("../DAO/models");
 
-const UserController = () => {
+const UserController = (): [string, Router] => {
   const path: string = "/users";
-  const router = express.Router();
+  const router: Router = express.Router(); // Aseguramos el tipo `Router`
 
-  //Agregar otros endpoints, post, get
+  
 
   // Ruta para obtener todos los usuarios
-  router.get("/list", async (req: Request, resp: Response) => {
+  router.get("/list", async (req: Request, resp: Response): Promise<void> => {
     try {
-      const users = await db.User.findAll(); // Recupera todos los usuarios de la base de datos
+      const users = await db.User.findAll();
       resp.json({
         msg: "Lista de usuarios",
         users: users,
       });
-    } catch (error: unknown) {  // Cambié el tipo a `unknown`
-      if (error instanceof Error) {
-        resp.status(500).json({
-          msg: "Error al obtener los usuarios",
-          error: error.message,
-        });
-      } else {
-        resp.status(500).json({
-          msg: "Error desconocido al obtener los usuarios",
-          error: "Error desconocido",
-        });
-      }
+    } catch (error: unknown) {
+      resp.status(500).json({
+        msg: "Error al obtener los usuarios",
+        error: error instanceof Error ? error.message : "Error desconocido",
+      });
     }
   });
-  
 
-  router.get("/totalUsers", async (req: Request, resp: Response) => {
-    const totalUsers = await db.User.count({
-      where:{
-        role_id : 2
-      }
+  // Ruta para obtener el total de usuarios con role_id = 2
+  router.get("/totalUsers", async (req: Request, resp: Response): Promise<void> => {
+    try {
+      const totalUsers = await db.User.count({
+        where: {
+          role_id: 2,
+        },
+      });
+
+      resp.json({
+        msg: "",
+        totalUsers: totalUsers,
+      });
+    } catch (error) {
+      resp.status(500).json({
+        msg: "Error al obtener el total de usuarios",
+        error: error instanceof Error ? error.message : "Error desconocido",
+      });
     }
-    )
-    resp.json({
-      msg: "",
-      totalUsers: totalUsers
-    })
-  })
+  });
 
-  return [path, router];
-}
+  return [path, router]; // Aseguramos que el retorno es [string, Router]
+};
 
-export default UserController
+export default UserController;
