@@ -17,7 +17,7 @@ export const sendVerificationEmail = async (email: string) => {
 
   const mailOptions = {
     from: UsuarioGmail,
-    to: UsuarioGmail,
+    to: email,
     subject: "Verifica tu cuenta",
     html: `
       <h1>Confirmación de Correo</h1>
