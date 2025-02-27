@@ -186,43 +186,118 @@ const ExpenseController = () => {
         }
     });
     
-    // Ruta para obtener el resumen de gastos mensuales
-router.get("/summary/monthly", async (req: Request, resp: Response) => {
-    try {
-        const expenses = await db.Expense.findAll();
 
-        const gastosMensuales: Record<string, number> = {};
 
-        expenses.forEach((expense: any) => {
-            const date = new Date(expense.dataValues.date);
-            const mes = date.toLocaleString("es-ES", { month: "short" }); // Ej: "ene", "feb", "mar"
-            
-            if (!gastosMensuales[mes]) {
-                gastosMensuales[mes] = 0;
-            }
-            gastosMensuales[mes] += parseFloat(expense.dataValues.amount);
-        });
 
-        resp.json({
-            msg: "",
-            gastosMensuales
-        });
-    } catch (error) {
-        console.error("Error al obtener gastos mensuales:", error);
-        resp.status(500).json({ msg: "Error interno" });
-    }
-});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    router.get(`/summary/monthly/:userId`, async (req: Request, resp: Response) => {
+        try {
+            const { userId } = req.params;
+            const userIdNumber = parseInt(userId, 10);
+    
+               
+            const expenses = await db.Expense.findAll({
+                where: {
+                    user_id: userIdNumber
+                }
+            });
+    
+            const gastosMensuales: Record<string, number> = {};
+    
+            expenses.forEach((expense: any) => {
+                const date = new Date(expense.dataValues.date);
+                const mes = date.toLocaleDateString("es-ES", { month: "short" }); // Ej: "ene", "feb"
+    
+                if (!gastosMensuales[mes]) {
+                    gastosMensuales[mes] = 0;
+                }
+                gastosMensuales[mes] += parseFloat(expense.dataValues.amount);
+            });
+    
+            console.log(gastosMensuales);
+    
+            resp.json({
+                msg: "",
+                gastosMensuales
+            });
+        } catch (error) {
+            console.error("Error al obtener gastos mensuales:", error);
+            resp.status(500).json({ msg: "Error interno" });
+        }
+    });
+
+
+
+
+
 
 // Ruta para obtener el resumen de gastos por categoría
-router.get("/summary/category", async (req: Request, resp: Response) => {
+router.get(`/summary/category/:userId`, async (req: Request, resp: Response) => {
     try {
+        const { userId } = req.params;
         const expenses = await db.Expense.findAll({
+            where: {
+                user_id: userId
+            },
             include: {
                 model: db.Category,
                 as: "Category",
-                attributes: ["name"],
+                required: true
             }
-        });
+         })
 
         const gastosPorCategoria: Record<string, number> = {};
 
@@ -234,6 +309,8 @@ router.get("/summary/category", async (req: Request, resp: Response) => {
             }
             gastosPorCategoria[categoria] += parseFloat(expense.dataValues.amount);
         });
+
+        console.log(gastosPorCategoria)
 
         resp.json({
             msg: "",

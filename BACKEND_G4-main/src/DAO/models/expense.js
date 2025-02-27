@@ -11,7 +11,8 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       Expense.belongsTo(models.Category,{
-        foreignKey : "category_id"
+        foreignKey : "category_id",
+        as : "Category"
       })
       Expense.belongsTo(models.User,{
         foreignKey : "user_id"

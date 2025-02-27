@@ -13,7 +13,7 @@ const transporter = nodemailer.createTransport({
 });
 
 export const sendVerificationEmail = async (email: string) => {
-  const verificationLink = `http://localhost:5173/verify?email=${encodeURIComponent(email)}`;
+  const verificationLink = `http://localhost:5000/users/verify?email=${encodeURIComponent(email)}`;
 
   const mailOptions = {
     from: UsuarioGmail,

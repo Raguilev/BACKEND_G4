@@ -11,7 +11,8 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       Category.hasMany(models.Expense,{
-        foreignKey : "category_id"
+        foreignKey : "category_id",
+        as : "Category"
       })
       Category.hasMany(models.Budget,{
         foreignKey : "category_id"
