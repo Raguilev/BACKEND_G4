@@ -10,6 +10,11 @@ module.exports = {
       monthly_budget: 129.99
      },
      {
+      user_id : 3,
+      category_id: 3,
+      monthly_budget: 222.22
+     },
+     {
       user_id : 2,
       category_id: 2,
       monthly_budget: 1229.99
@@ -19,6 +24,7 @@ module.exports = {
       category_id: 3,
       monthly_budget: 779.99
      }
+     
     ], {});
   },
   async down (queryInterface, Sequelize) {

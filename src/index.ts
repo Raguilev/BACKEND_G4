@@ -7,7 +7,7 @@ import UserController from './Controllers/UserController'
 import AccessLogController from './Controllers/AccessLogController'
 import CategoriaController from './Controllers/CategoryController'
 import AuthController from './Controllers/AuthController'
-/*import BudgetController from './Controllers/BudgetController' */
+import BudgetController from './Controllers/BudgetController'
 
 dotenv.config() //para que tome el puerto
 
@@ -25,9 +25,9 @@ const [userPath, userRouter] = UserController()
 const [accessLogsPath, accessLogsRouter] = AccessLogController();
 const [categoryPath, categoryRouter] = CategoriaController();
 const [AuthPath, AuthRouter] = AuthController();
-//const [BudgetPath, BudgetRouter] = BudgetController();
+const [BudgetPath, BudgetRouter] = BudgetController();
 
-//app.use(BudgetPath as string, BudgetRouter as Router)
+app.use(BudgetPath as string, BudgetRouter as Router)
 app.use(expensesPath as string , expensesRouter as Router)
 app.use(userPath as string , userRouter as Router)
 app.use(accessLogsPath as string , accessLogsRouter as Router)
