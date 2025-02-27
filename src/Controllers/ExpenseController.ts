@@ -82,6 +82,27 @@ const ExpenseController = () => {
         const { user_id } = req.params;
         const {  category_id, amount, description, date, recurring } = req.body;
     
+         // AQUI BORRAR✅ Obtener el presupuesto del usuario para la categoría específica
+        const presupuesto = await db.Budget.findOne({
+            where: { user_id: user_id, category_id }
+        });
+        if (!presupuesto) {
+            resp.status(404).json({ msg: "No se encontró un presupuesto para esta categoría." });
+        }
+        const budgetAmount = parseFloat(presupuesto.monthly_budget.toString());
+        // ✅ Obtener el total de gastos acumulados en la categoría
+        const totalSpent = await db.Expense.sum("amount", {
+            where: { user_id: user_id, category_id }
+        });
+        const newTotal = (totalSpent || 0) + parseFloat(amount);
+
+        let alerta = "";
+        if (newTotal >= budgetAmount) {
+            alerta = `🚨 Alerta: Has excedido tu presupuesto de S/. ${budgetAmount.toFixed(2)} en la categoría.`;
+        } else if (newTotal >= budgetAmount * 0.8) {
+            alerta = `⚠ Advertencia: Has gastado el ${((newTotal / budgetAmount) * 100).toFixed(1)}% de tu presupuesto en esta categoría.`;
+        }
+        
         const nuevoGasto = await db.Expense.create({
             
             user_id,
