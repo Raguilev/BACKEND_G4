@@ -14,10 +14,10 @@
     "dialect": "mysql"
   },
   "production": {
-    "username": "root",
-    "password": null,
-    "database": "database_production",
-    "host": "127.0.0.1",
-    "dialect": "mysql"
+    "username": "gastos_personales",
+    "password": "3UXy552|",
+    "database": "gestiongastospesonal",
+    "host": "gestiongastospesonal.postgres.database.azure.com",
+    "dialect": "postgres"
   }
 }
