@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import path from "path";
 const db = require("../DAO/models")
 import fs from "fs";
+import { Op } from "sequelize";
 
 import fastcsv from "fast-csv";
 interface Egreso {
@@ -186,63 +187,7 @@ const ExpenseController = () => {
         }
     });
     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+// Ruta para obtener el resumen de gastos mensuales
     router.get(`/summary/monthly/:userId`, async (req: Request, resp: Response) => {
         try {
             const { userId } = req.params;
@@ -278,8 +223,6 @@ const ExpenseController = () => {
             resp.status(500).json({ msg: "Error interno" });
         }
     });
-
-
 
 
 
@@ -321,9 +264,56 @@ router.get(`/summary/category/:userId`, async (req: Request, resp: Response) => 
         resp.status(500).json({ msg: "Error interno" });
     }
 });
+    //  Endpoint para filtrar gastos
+    router.get("/filter/:userId", async (req: Request, resp: Response) => {
+        try {
+            const { userId } = req.params;
+            const { category, date, minAmount, maxAmount } = req.query;
     
+            const filters: any = { user_id: userId };
     
+            // 🔹 Filtro por categoría
+            if (category) {
+                filters["$Category.name$"] = { [Op.eq]: category };  
+            }
     
+            // 🔹 Filtro por fecha
+            if (date) {
+                filters["date"] = { [Op.eq]: date };
+            }
+    
+            // 🔹 Filtro por monto mínimo y máximo
+            if (minAmount || maxAmount) {
+                filters["amount"] = {};  
+                if (minAmount) {
+                    filters["amount"][Op.gte] = parseFloat(minAmount as string);
+                }
+                if (maxAmount) {
+                    filters["amount"][Op.lte] = parseFloat(maxAmount as string);
+                }
+            }
+    
+            console.log("📌 Filtros aplicados:", filters);  // 🔥 Log para depuración
+    
+            const expenses = await db.Expense.findAll({
+                where: filters,
+                include: {
+                    model: db.Category,
+                    as: "Category",
+                    attributes: ["name"],
+                    required: true
+                }
+            });
+    
+            resp.json({
+                msg: "",
+                expenses
+            });
+        } catch (error) {
+            console.error("❌ Error al filtrar gastos:", error);
+            resp.status(500).json({ msg: "Error interno al obtener los gastos" });
+        }
+    });
     
     return [basePath, router]
 
