@@ -3,7 +3,7 @@ import bcrypt from "bcrypt";
 import cors from 'cors'
 import jwt from "jsonwebtoken";
 const db = require("../DAO/models")
-
+import { sendVerificationEmail } from "../email"; 
 const UserController = () => {
   const path: string = "/users";
   const router = express.Router();
@@ -227,7 +227,6 @@ router.post("/reset-password", async (req: Request, res: Response) => {
 
 
 
-
 router.use(cors()); // ✅ Habilita CORS para evitar bloqueos
 
 // 🔹 Registrar usuario con contraseña encriptada
@@ -257,12 +256,170 @@ router.post("/register", async (req: Request, res: Response) => {
       verified: false,
   });
 
+  await sendVerificationEmail(email);
+
   console.log("✅ Usuario registrado correctamente:", newUser);
-  res.status(201).json({ msg: "Registro exitoso. Verifique su correo.", data: newUser });
+  res.status(201).json({ msg: "Registro exitoso", data: newUser });
+});
+router.get("/verify", async (req: Request, res: Response) => {
+  const { email } = req.query;
+
+  // Buscar el usuario por el email
+  const user = await db.User.findOne({ where: { email } });
+
+  if (!user) {
+   res.status(400).json({ msg: "Usuario no encontrado o ya verificado" });
+  }
+
+  if (user.verified) {
+    res.status(400).json({ msg: "La cuenta ya está verificada" });
+  }
+
+  // Actualizar usuario como verificado
+  await db.User.update(
+    { verified: true },
+    { where: { email } }
+  );
+
+  res.send( `
+    <h1>Confirmación de Correo</h1>
+    <p>¡Tu cuenta ha sido verificada!</p>
+    <p>Ya puedes iniciar sesión en nuestra plataforma.</p>
+  ` );
 });
 
+router.post("/AgregarUsuario", async (req: Request, res: Response) => {
+    const { name, email, password, role_id } = req.body;
+  
+    // Inicia una transacción en Sequelize
+    const transaction = await db.sequelize.transaction();
+  
+    try {
+      const saltRounds = 10;
+      const password_hash = await bcrypt.hash(password, saltRounds);
+  
+      const user = await db.User.create(
+        {
+          name,
+          email,
+          password_hash,
+          role_id,
+          verified: false,
+        },
+        { transaction }
+      );
+  
+      // Confirmar los cambios en la base de datos
+      await transaction.commit();
+  
+      res.status(201).json({
+        msg: "Usuario creado exitosamente",
+        user
+      });
+    } catch (error) {
+      // Si hay un error, se revierten los cambios
+      await transaction.rollback();
+      console.error("Error al agregar usuario:", error);
+      res.status(500).json({ msg: "Error al crear el usuario" });
+    }
+  });
+  
 
+  // Editar un usuario existente (solo para administradores)
+  router.put("/EditarUsuario/:userId", async (req: Request, res: Response) => {
+    const { userId } = req.params;
+    const { name, email, password, role } = req.body;
+  
+    try {
+      const user = await db.User.findByPk(userId);
+      if (!user) {
+        res.status(404).json({ msg: "Usuario no encontrado" });
+      }
+  
+      // Actualizar los campos proporcionados
+      if (name) user.name = name;
+      if (email) user.email = email;
+      if (role) user.role_id = role === "Admin" ? 1 : 2;
+  
+      // Si se proporciona una nueva contraseña, hashearla
+      if (password) {
+        const saltRounds = 10;
+        user.password_hash = await bcrypt.hash(password, saltRounds);
+      }
+  
+      await user.save();
+      res.json({ msg: "Usuario actualizado exitosamente", user });
+    } catch (error) {
+      console.error("Error al actualizar usuario:", error);
+      res.status(500).json({ msg: "Error al actualizar el usuario" });
+    }
+  });
 
+  // Eliminar un usuario (solo para administradores)
+  router.delete("/EliminarUsuario/:userId", async (req, res) => {
+    const { userId } = req.params;
+    try {
+      // Lógica para eliminar el usuario
+      await db.User.destroy({ where: { id: userId } });
+      res.json({ msg: "Usuario eliminado correctamente" });
+    } catch (error) {
+      console.error("Error eliminando usuario:", error);
+      res.status(500).json({ msg: "Error al eliminar usuario" });
+    }
+  });
+
+  router.post("/change-password", async (req : Request, res : Response) => {
+    const { currentPassword, newPassword } = req.body;
+    const userId = (req as any).user.id; // Asumimos que el ID del usuario se obtiene del token JWT
+
+    try {
+      // Buscar al usuario en la base de datos
+      const user = await db.User.findByPk(userId);
+
+      if (!user) {
+        res.status(404).json({ msg: "Usuario no encontrado" });
+      }
+
+      // Verificar que la contraseña actual sea correcta
+      const isPasswordValid = await bcrypt.compare(currentPassword, user.password_hash);
+
+      if (!isPasswordValid) {
+        res.status(400).json({ msg: "Contraseña actual incorrecta" });
+      }
+
+      // Hashear la nueva contraseña
+      const saltRounds = 10;
+      const newPasswordHash = await bcrypt.hash(newPassword, saltRounds);
+
+      // Actualizar la contraseña en la base de datos
+      await user.update({ password_hash: newPasswordHash });
+
+      res.json({ msg: "Contraseña actualizada correctamente" });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ msg: "Error al cambiar la contraseña" });
+    }
+  })
+ 
+
+  router.delete("/EliminarUsuario", async (req: Request, res: Response) => {
+    const { id } = req.params;
+    try {
+      const user = await db.User.findByPk(id);
+      if (!user) {
+         res.status(404).json({ msg: "Usuario no encontrado" });
+      }
+      console.log("Eliminando usuarios")
+      
+      await user.destroy();
+      res.json({
+        msg: "Usuario eliminado exitosamente"
+      });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ msg: "Error al eliminar el usuario" });
+    }
+  });
 
 
   return [path, router];

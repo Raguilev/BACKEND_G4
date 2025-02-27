@@ -19,14 +19,16 @@ const AccessLogController = () => {
 
     const formattedAccessLog = historial.map((accesslog: any) => {
       const fecha = new Date(accesslog.dataValues.access_time);
-
-
+    
+      // Usar métodos locales en lugar de UTC
       const dia = fecha.getDate().toString().padStart(2, '0');
       const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
       const año = fecha.getFullYear().toString().slice(-2);
-
+    
       const horas = fecha.getHours().toString().padStart(2, '0');
       const minutos = fecha.getMinutes().toString().padStart(2, '0');
+    
+    
 
       return {
         ...accesslog.dataValues,
@@ -43,41 +45,42 @@ const AccessLogController = () => {
   })
 
   //Endpoint para agregar logs
-  router.post("/:user_id/:action", async (req: Request, resp: Response) => {
-    const { user_id, action } = req.params;
+  //Endpoint para agregar logs
+  router.post("/:user_id", async (req: Request, resp: Response) => {
+    const { user_id } = req.params;
+    const { action, firstaccess } = req.body;
     const user = await db.User.findByPk(user_id);
 
     if (!user) {
       resp.json({
         msg: "No hay usuario"
-      })
+      });
       return
     }
 
-    //Validacion de Acceso en usuario
-    const isFirstAccess = action == "Registro" && user.access == true
+
+
     const newAccessLog = await db.AccessLog.create({
       user_id: user_id,
       action: action,
-      firstaccess: isFirstAccess,
+      firstaccess: firstaccess,
       access_time: new Date()
     })
     resp.json({
-      msg: "Accion añadida"
+      msg: "Accion añadida"
     })
-});
-
+  });
   //Endpoint para obtener usuarios nuevos por mes
   router.get("/summary", async (req: Request, resp: Response) => {
     const currentYear = new Date().getFullYear();
-    
+
     const logs = await db.AccessLog.findAll({
       where: {
         firstaccess: true,
         access_time: {
           [Op.between]: [
-            new Date(`${currentYear}-01-01`), 
-            new Date(`${currentYear}-12-31`) 
+            new Date(`${currentYear}-01-01`),
+            new Date(`${currentYear}-12-31`)
           ]
         }
       },
@@ -94,44 +97,44 @@ const AccessLogController = () => {
     for (const log of logs) {
       const fecha = new Date(log.access_time);
       const mesNumero = fecha.getMonth();
-      
+
       const mesesKeys = Object.keys(mesesUsuario);
       const mesKey = mesesKeys[mesNumero];
-      
+
       if (mesKey) {
         mesesUsuario[mesKey] += 1;
       }
     }
 
     resp.json({
-      msg : "",
+      msg: "",
       nuevosUsuarios: mesesUsuario
     });
 
   });
-//Endpoint para agregar logs
-router.post("/:user_id", async (req: Request, resp: Response) => {
-  const { user_id } = req.params;
-  const { action , firstaccess } = req.body;
-  const user = await db.User.findByPk(user_id);
-  
-  if (!user) {
-    resp.json({
-      msg: "No hay usuario"
-    })
-    return
-  }
+  //Endpoint para agregar logs
+  router.post("/:user_id", async (req: Request, resp: Response) => {
+    const { user_id } = req.params;
+    const { action, firstaccess } = req.body;
+    const user = await db.User.findByPk(user_id);
 
-  const newAccessLog = await db.AccessLog.create({
-    user_id: user_id,
-    action: action,
-    firstaccess: firstaccess,
-    access_time: new Date()
-  })
-  resp.json({
-    msg: "Accion añadida"
-    })
-});
+    if (!user) {
+      resp.json({
+        msg: "No hay usuario"
+      })
+      return
+    }
+
+    const newAccessLog = await db.AccessLog.create({
+      user_id: user_id,
+      action: action,
+      firstaccess: firstaccess,
+      access_time: new Date()
+    })
+    resp.json({
+      msg: "Accion añadida"
+    })
+  });
   return [path, router]
 }
 
