@@ -44,32 +44,7 @@ const AccessLogController = () => {
     })
   })
 
-  //Endpoint para agregar logs
-  //Endpoint para agregar logs
-  router.post("/:user_id", async (req: Request, resp: Response) => {
-    const { user_id } = req.params;
-    const { action, firstaccess } = req.body;
-    const user = await db.User.findByPk(user_id);
-
-    if (!user) {
-      resp.json({
-        msg: "No hay usuario"
-      });
-      return
-    }
-
-
-
-    const newAccessLog = await db.AccessLog.create({
-      user_id: user_id,
-      action: action,
-      firstaccess: firstaccess,
-      access_time: new Date()
-    })
-    resp.json({
-      msg: "Accion añadida"
-    })
-  });
+  
   //Endpoint para obtener usuarios nuevos por mes
   router.get("/summary", async (req: Request, resp: Response) => {
     const currentYear = new Date().getFullYear();
